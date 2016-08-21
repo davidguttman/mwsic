@@ -1,0 +1,33 @@
+{
+  "name": "mwsic",
+  "version": "0.0.0",
+  "description": "A high-level API for Amazon MWS. Handles iteration and rate-limiting.",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [
+    "amazon",
+    "mws"
+  ],
+  "author": "David Guttman <david@guttman.io> (http://davidguttman.com/)",
+  "license": "MIT",
+  "dependencies": {
+    "dg-amazon-mws": "^1.0.4",
+    "lodash": "^4.15.0",
+    "moment-timezone": "^0.5.5",
+    "traverse": "^0.6.6",
+    "xml2js": "^0.4.17",
+    "xtend": "^4.0.1"
+  },
+  "directories": {
+    "example": "example"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidguttman/mwsic.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davidguttman/mwsic/issues"
+  },
+  "homepage": "https://github.com/davidguttman/mwsic#readme"
+}
