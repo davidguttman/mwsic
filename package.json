@@ -12,6 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "dg-amazon-mws": "^1.0.4",
+    "from2": "^2.3.0",
     "lodash": "^4.15.0",
     "moment-timezone": "^0.5.5",
     "traverse": "^0.6.6",

@@ -11,8 +11,10 @@ A high-level API for Amazon MWS. Handles iteration and rate-limiting.
 ### `mwsic = Mwsic(opts)`
 
 ```js
-var opts = { key, secret }
+var opts = { key, secret, [timezone] }
 ```
+
+* `timezone`, if provided, will convert date strings to the specified [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for you. This is useful if your server is on UTC but you want to query on a "Pacific" date range.
 
 ### `mwsic.getBSR(opts, cb)`
 

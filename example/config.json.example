@@ -1,4 +1,5 @@
 {
   "key": "xxx",
-  "secret": "yyy"
+  "secret": "yyy",
+  "timezone": "America/Los_Angeles"
 }
