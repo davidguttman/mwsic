@@ -11,6 +11,8 @@
   "author": "David Guttman <david@guttman.io> (http://davidguttman.com/)",
   "license": "MIT",
   "dependencies": {
+    "backoff": "^2.5.0",
+    "debug": "^2.2.0",
     "dg-amazon-mws": "^1.0.4",
     "from2": "^2.3.0",
     "lodash": "^4.15.0",

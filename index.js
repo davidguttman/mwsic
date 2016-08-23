@@ -2,7 +2,9 @@ var _ = require('lodash')
 var MWS = require('dg-amazon-mws')
 var from = require('from2').obj
 var xtend = require('xtend')
+var debug = require('debug')('main')
 var moment = require('moment-timezone')
+var backoff = require('backoff')
 var traverse = require('traverse')
 var parseString = require('xml2js').parseString
 
@@ -115,6 +117,7 @@ function createOrdersStream (opts) {
 
     self.getOrders(opts, function (err, resp) {
       if (err) return cb(err)
+      firstCall = false
 
       nextToken = resp.NextToken
       var orders = resp.Orders.Order
@@ -153,17 +156,16 @@ function request (opts, cb) {
 }
 
 function requestWithRetry (opts, cb) {
-  var interval = 5000
-  var self = this
+  var call = backoff.call(this._request.bind(this), opts, cb)
 
-  this._request(opts, function (err, result, res, body) {
-    if (err && err.code === 'RequestThrottled') {
-      console.log('throttled: waiting %d ms', interval)
-      return setTimeout(self.request.bind(self), interval, opts, cb)
-    }
+  call.on('backoff', debug)
+  call.retryIf(function(err) { return err.code === 'RequestThrottled' })
+  call.setStrategy(new backoff.ExponentialStrategy({
+    initialDelay: 1000,
+    maxDelay: 60000,
+  }))
 
-    cb(err, result, res, body)
-  })
+  call.start()
 }
 
 function parseResponse (action, cb) {
