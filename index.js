@@ -43,7 +43,7 @@ function getBSR (opts, cb) {
     if (err) return cb(err)
 
     var salesRank = _.get(info, [
-      'GetMatchingProductResponse','GetMatchingProductResult', 'Product',
+      'GetMatchingProductResponse', 'GetMatchingProductResult', 'Product',
       'SalesRankings', 'SalesRank'
     ])
 
@@ -64,22 +64,24 @@ function getOrders (opts, cb) {
   var params = {
     'Action': 'ListOrders',
     'SellerId': opts.sellerId,
-    'MarketplaceId.Id.1' : opts.marketplaceId,
-    'OrderStatus.Status.1' : 'Pending',
-    'OrderStatus.Status.2' : 'Unshipped',
-    'OrderStatus.Status.3' : 'Shipped',
-    'OrderStatus.Status.4' : 'PartiallyShipped',
+    'MarketplaceId.Id.1': opts.marketplaceId,
+    'OrderStatus.Status.1': 'Pending',
+    'OrderStatus.Status.2': 'Unshipped',
+    'OrderStatus.Status.3': 'Shipped',
+    'OrderStatus.Status.4': 'PartiallyShipped'
   }
 
   if (opts.nextToken) {
     params.Action = 'ListOrdersByNextToken'
     params.NextToken = opts.nextToken
   } else {
-    if (opts.dateStart)
+    if (opts.dateStart) {
       params.CreatedAfter = this.moment(opts.dateStart).toISOString()
+    }
 
-    if (opts.dateEnd)
+    if (opts.dateEnd) {
       params.CreatedBefore = this.moment(opts.dateEnd).toISOString()
+    }
   }
 
   return this.request({
@@ -95,7 +97,7 @@ function getProductInfo (opts, cb) {
       'Action': 'GetMatchingProduct',
       'MarketplaceId': opts.marketplaceId,
       'ASINList.ASIN.1': opts.asin,
-      'SellerId': opts.sellerId,
+      'SellerId': opts.sellerId
     }
   }, cb)
 }
@@ -129,8 +131,8 @@ function createOrdersStream (opts) {
           'OrderTotal.Amount', 'IsPrime'
         ])
 
-        order.NumberOfItems = parseFloat(order.NumberOfItemsShipped)
-          + parseFloat(order.NumberOfItemsUnshipped)
+        order.NumberOfItems = parseFloat(order.NumberOfItemsShipped) +
+          parseFloat(order.NumberOfItemsUnshipped)
 
         buffer.push(order)
       })
@@ -159,10 +161,10 @@ function requestWithRetry (opts, cb) {
   var call = backoff.call(this._request.bind(this), opts, cb)
 
   call.on('backoff', debug)
-  call.retryIf(function(err) { return err.code === 'RequestThrottled' })
+  call.retryIf(function (err) { return err.code === 'RequestThrottled' })
   call.setStrategy(new backoff.ExponentialStrategy({
     initialDelay: 1000,
-    maxDelay: 60000,
+    maxDelay: 60000
   }))
 
   call.start()
@@ -172,7 +174,7 @@ function parseResponse (action, cb) {
   return function (err, res, body) {
     if (err) return cb(err)
 
-    var xmlObj = parseString(body, function (err, rawResult) {
+    parseString(body, function (err, rawResult) {
       if (err) return cb(err)
 
       var data = cleanXMLObject(action, rawResult)
