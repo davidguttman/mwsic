@@ -40,7 +40,44 @@ var cb = function (err, productInfo) {
 ### `mwsic.createOrdersStream(opts)`
 
 ```js
-var opts = { dateStart, dateEnd }
+mwsic.createOrdersStream({
+  dateStart: '2016-07-10',
+  dateEnd: '2016-07-24',
+  sellerId: config.sellerId,
+  marketplaceId: config.marketplaceId
+}).on('data', function (row) {
+  // {
+  //   "PurchaseDate": "2016-07-10T20:18:32Z",
+  //   "AmazonOrderId": "910-6853146-8217084",
+  //   "LastUpdateDate": "2016-07-11T21:26:50Z",
+  //   "NumberOfItemsShipped": "1",
+  //   "NumberOfItemsUnshipped": "0",
+  //   "IsPrime": "false",
+  //   "NumberOfItems": 1,
+  //   "OrderItems": [
+  //     {
+  //       "QuantityOrdered": "1",
+  //       "Title": "Awesome Item",
+  //       "PromotionDiscount": {
+  //         "CurrencyCode": "USD",
+  //         "Amount": "0.00"
+  //       },
+  //       "ASIN": "B01AURE4K4",
+  //       "SellerSKU": "A001",
+  //       "OrderItemId": "32230629473577",
+  //       "QuantityShipped": "1",
+  //       "ItemPrice": {
+  //         "CurrencyCode": "USD",
+  //         "Amount": "82.00"
+  //       },
+  //       "ItemTax": {
+  //         "CurrencyCode": "USD",
+  //         "Amount": "6.31"
+  //       }
+  //     }
+  //   ]
+  // }
+})
 ```
 
 ### `mwsic.createFinancialEventsStream(opts)`

@@ -5,6 +5,7 @@ var xtend = require('xtend')
 var debug = require('debug')('main')
 var moment = require('moment-timezone')
 var backoff = require('backoff')
+var through = require('through2').obj
 var traverse = require('traverse')
 var parseString = require('xml2js').parseString
 
@@ -34,8 +35,10 @@ Mwsic.prototype._request = request
 Mwsic.prototype.request = requestWithRetry
 Mwsic.prototype.getBSR = getBSR
 Mwsic.prototype.getOrders = getOrders
+Mwsic.prototype.getOrderItems = getOrderItems
 Mwsic.prototype.getProductInfo = getProductInfo
 Mwsic.prototype.createOrdersStream = createOrdersStream
+Mwsic.prototype.addOrderItemsStream = addOrderItemsStream
 Mwsic.prototype.createFinancialEventsStream = createFinancialEventsStream
 
 function getBSR (opts, cb) {
@@ -90,6 +93,24 @@ function getOrders (opts, cb) {
   }, cb)
 }
 
+function getOrderItems (opts, cb) {
+  var params = {
+    'Action': 'ListOrderItems',
+    'SellerId': opts.sellerId,
+    'AmazonOrderId': opts.id
+  }
+
+  if (opts.nextToken) {
+    params.Action = 'ListOrderItemsByNextToken'
+    params.NextToken = opts.nextToken
+  }
+
+  return this.request({
+    endpoint: '/Orders/2013-09-01',
+    params: params
+  }, cb)
+}
+
 function getProductInfo (opts, cb) {
   return this.request({
     endpoint: '/Products/2011-10-01',
@@ -112,7 +133,7 @@ function createOrdersStream (opts) {
   var buffer = []
   var firstCall = true
 
-  return from(function (size, cb) {
+  var rs = from(function (size, cb) {
     opts.nextToken = nextToken
     if (buffer[0]) return cb(null, buffer.shift())
     if (!firstCall && !nextToken) return cb(null, null)
@@ -140,6 +161,10 @@ function createOrdersStream (opts) {
       cb(null, buffer.shift())
     })
   })
+
+  if (opts.noItems) return rs
+
+  return rs.pipe(self.addOrderItemsStream(opts))
 }
 
 function createFinancialEventsStream () {
@@ -190,7 +215,9 @@ function parseResponse (action, cb) {
 function cleanXMLObject (action, xml) {
   var blacklist = [
     'ListOrdersResponse.ListOrdersResult.Orders.Order',
-    'ListOrdersByNextTokenResponse.ListOrdersByNextTokenResult.Orders.Order'
+    'ListOrdersByNextTokenResponse.ListOrdersByNextTokenResult.Orders.Order',
+    'ListOrderItemsResponse.ListOrderItemsResult.OrderItems.OrderItem',
+    'ListOrderItemsByNextTokenResponse.ListOrderItemsResult.OrderItems.OrderItem',
   ]
 
   return traverse(xml).forEach(function (x, a) {
@@ -230,4 +257,17 @@ function parseError (result, response) {
   }
 
   return err
+}
+
+function addOrderItemsStream (opts) {
+  var self = this
+  return through(function (order, enc, cb) {
+    self.getOrderItems({
+      sellerId: opts.sellerId, id: order.AmazonOrderId
+    }, function (err, orderItems) {
+      if (err) return cb(err)
+      order.OrderItems = _.get(orderItems, 'OrderItems.OrderItem')
+      cb(null, order)
+    })
+  })
 }
