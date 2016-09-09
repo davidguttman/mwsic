@@ -1,6 +1,6 @@
 {
   "name": "mwsic",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A high-level API for Amazon MWS. Handles iteration and rate-limiting.",
   "main": "index.js",
   "scripts": {},
