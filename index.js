@@ -33,12 +33,16 @@ var Mwsic = module.exports = function (opts) {
 
 Mwsic.prototype._request = request
 Mwsic.prototype.request = requestWithRetry
+
 Mwsic.prototype.getBSR = getBSR
+Mwsic.prototype.getProductInfo = getProductInfo
+
 Mwsic.prototype.getOrders = getOrders
 Mwsic.prototype.getOrderItems = getOrderItems
-Mwsic.prototype.getProductInfo = getProductInfo
 Mwsic.prototype.createOrdersStream = createOrdersStream
 Mwsic.prototype.addOrderItemsStream = addOrderItemsStream
+
+Mwsic.prototype.getFinancialEvents = getFinancialEvents
 Mwsic.prototype.createFinancialEventsStream = createFinancialEventsStream
 
 function getBSR (opts, cb) {
@@ -167,8 +171,59 @@ function createOrdersStream (opts) {
   return rs.pipe(self.addOrderItemsStream(opts))
 }
 
-function createFinancialEventsStream () {
+function createFinancialEventsStream (opts) {
+  var self = this
 
+  if (opts.dateStart) opts.dateStart = this.moment(opts.dateStart).toISOString()
+  if (opts.dateEnd) opts.dateEnd = this.moment(opts.dateEnd).toISOString()
+
+  var nextToken
+  var buffer = []
+  var firstCall = true
+
+  var rs = from(function (size, cb) {
+    opts.nextToken = nextToken
+    if (buffer[0]) return cb(null, buffer.shift())
+    if (!firstCall && !nextToken) return cb(null, null)
+
+    self.getFinancialEvents(opts, function (err, resp) {
+      if (err) return cb(err)
+      firstCall = false
+
+      nextToken = resp.NextToken
+
+      var events = extractFinancialEvents(resp.FinancialEvents)
+      events.forEach(function (event) {
+        event.dateStart = opts.dateStart
+        event.dateEnd = opts.dateEnd
+        buffer.push(event)
+      })
+
+      cb(null, buffer.shift())
+    })
+  })
+
+  return rs
+}
+
+function getFinancialEvents (opts, cb) {
+  var params = {
+    'Action': 'ListFinancialEvents',
+    'SellerId': opts.sellerId
+  }
+
+  if (opts.nextToken) {
+    params.Action = 'ListFinancialEventsByNextToken'
+    params.NextToken = opts.nextToken
+  } else {
+    if (opts.dateStart) params['PostedAfter'] = opts.dateStart
+    if (opts.dateEnd) params['PostedBefore'] = opts.dateEnd
+  }
+
+  return this.request({
+    endpoint: '/Finances/2015-05-01',
+    params: params
+  }, cb)
 }
 
 function request (opts, cb) {
@@ -270,4 +325,28 @@ function addOrderItemsStream (opts) {
       cb(null, order)
     })
   })
+}
+
+function extractFinancialEvents (fe) {
+  var events = []
+
+  Object.keys(fe).forEach(function (type) {
+    var typeEvents = fe[type]
+    if (!typeEvents) return
+
+    var inner = typeEvents[Object.keys(typeEvents)[0]]
+
+    var eventType = type.replace('EventList', '')
+    if (!Array.isArray(inner)) {
+      inner.eventType = eventType
+      return events.push(inner)
+    }
+
+    inner.forEach(function (item) {
+      item.eventType = eventType
+      events.push(item)
+    })
+  })
+
+  return events
 }

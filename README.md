@@ -83,7 +83,44 @@ mwsic.createOrdersStream({
 ### `mwsic.createFinancialEventsStream(opts)`
 
 ```js
-var opts = { dateStart, dateEnd }
+mwsic.createFinancialEventsStream({
+  dateStart: '2016-07-10',
+  dateEnd: '2016-07-11',
+  sellerId: config.sellerId
+}).on('data', function (row) {
+  // {
+  //   "eventType": "Shipment",
+  //   "AmazonOrderId": "111-2631094-0301903",
+  //   "PostedDate": "2016-07-10T09:15:31Z",
+  //   "MarketplaceName": "Amazon.com",
+  //   "SellerOrderId": "111-2631094-0301903",
+  //   "ShipmentItemList": {
+  //     "ShipmentItem": {
+  //       "ItemChargeList": {
+  //         "ChargeComponent": [
+  //           {
+  //             "ChargeType": "Principal",
+  //             "ChargeAmount": {
+  //               "CurrencyAmount": "28.0",
+  //               "CurrencyCode": "USD"
+  //             }
+  //           },
+  //           {
+  //             "ChargeType": "Tax",
+  //             "ChargeAmount": {
+  //               "CurrencyAmount": "1.68",
+  //               "CurrencyCode": "USD"
+  //             }
+  //           },
+  //           {
+  //             "ChargeType": "GiftWrap",
+  //             "ChargeAmount": {
+  //               "CurrencyAmount": "0.0",
+  //               "CurrencyCode": "USD"
+  //             }
+  //           },
+  // ...
+})
 ```
 
 ## License
