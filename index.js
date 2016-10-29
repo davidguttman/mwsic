@@ -147,7 +147,7 @@ function createOrdersStream (opts) {
       firstCall = false
 
       nextToken = resp.NextToken
-      var orders = resp.Orders.Order
+      var orders = resp.Orders.Order || []
 
       orders.forEach(function (raw) {
         var order = _.pick(raw, [
@@ -317,6 +317,8 @@ function parseError (result, response) {
 function addOrderItemsStream (opts) {
   var self = this
   return through(function (order, enc, cb) {
+    if (!order) return cb()
+
     self.getOrderItems({
       sellerId: opts.sellerId, id: order.AmazonOrderId
     }, function (err, orderItems) {
