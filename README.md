@@ -123,6 +123,18 @@ mwsic.createFinancialEventsStream({
 })
 ```
 
+### `mwsic.createInventorySupplyStream(opts)`
+
+```js
+mwsic.createInventorySupplyStream({
+  dateStart: '2016-07-10',
+  sellerId: config.sellerId,
+  marketplaceId: config.marketplaceId
+}).on('data', function (row) {
+// {"Condition":"NewItem","SupplyDetail":"","TotalSupplyQuantity":"321","EarliestAvailability":{"TimepointType":"Immediately"},"FNSKU":"xxx","InStockSupplyQuantity":"316","ASIN":"B01AURE4K4","SellerSKU":"A001"}
+})
+```
+
 ## License
 
 MIT

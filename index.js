@@ -45,6 +45,9 @@ Mwsic.prototype.addOrderItemsStream = addOrderItemsStream
 Mwsic.prototype.getFinancialEvents = getFinancialEvents
 Mwsic.prototype.createFinancialEventsStream = createFinancialEventsStream
 
+Mwsic.prototype.createInventorySupplyStream = createInventorySupplyStream
+Mwsic.prototype.getInventorySupply = getInventorySupply
+
 function getBSR (opts, cb) {
   this.getProductInfo(opts, function (err, info) {
     if (err) return cb(err)
@@ -222,6 +225,56 @@ function getFinancialEvents (opts, cb) {
 
   return this.request({
     endpoint: '/Finances/2015-05-01',
+    params: params
+  }, cb)
+}
+
+function createInventorySupplyStream (opts, cb) {
+  var self = this
+
+  if (opts.dateStart) opts.dateStart = this.moment(opts.dateStart).toISOString()
+
+  var nextToken
+  var buffer = []
+  var firstCall = true
+
+  var rs = from(function (size, cb) {
+    opts.nextToken = nextToken
+    if (buffer[0]) return cb(null, buffer.shift())
+    if (!firstCall && !nextToken) return cb(null, null)
+
+    self.getInventorySupply(opts, function (err, resp) {
+      if (err) return cb(err)
+      firstCall = false
+
+      nextToken = resp.NextToken
+
+      resp.InventorySupplyList.member.forEach(function (supply) {
+        buffer.push(supply)
+      })
+
+      cb(null, buffer.shift())
+    })
+  })
+
+  return rs
+}
+
+function getInventorySupply (opts, cb) {
+  var params = {
+    'Action': 'ListInventorySupply',
+    'SellerId': opts.sellerId
+  }
+
+  if (opts.nextToken) {
+    params.Action = 'ListInventorySupplyByNextToken'
+    params.NextToken = opts.nextToken
+  } else {
+    if (opts.dateStart) params['QueryStartDateTime'] = opts.dateStart
+  }
+
+  return this.request({
+    endpoint: '/FulfillmentInventory/2010-10-01',
     params: params
   }, cb)
 }
