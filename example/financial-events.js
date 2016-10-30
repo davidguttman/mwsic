@@ -12,13 +12,3 @@ mwsic.createFinancialEventsStream({
 }).on('error', function (err) {
   console.log('err.code', err.code)
 })
-
-// mwsic.getOrders({
-//   dateStart: '2016-07-17',
-//   dateEnd: '2016-08-18',
-//   sellerId: config.sellerId,
-//   marketplaceId: config.marketplaceId
-// }, function (err, resp) {
-//   if (err) return console.error(err)
-//   console.log('resp', JSON.stringify(resp, null, 2))
-// })
