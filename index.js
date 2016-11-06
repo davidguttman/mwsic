@@ -53,8 +53,9 @@ function getBSR (opts, cb) {
     if (err) return cb(err)
 
     var salesRank = _.get(info, [
-      'GetMatchingProductResponse', 'GetMatchingProductResult', 'Product',
-      'SalesRankings', 'SalesRank'
+     'Product',
+     'SalesRankings',
+     'SalesRank'
     ])
 
     if (!salesRank) return cb(new Error('Could not find BSR'))
